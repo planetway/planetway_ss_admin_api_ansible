@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  role_name: Security Server Admin API
+  author: Planetway
+  description: Role to configure Security Server using the Admin API
+  license: BSD
+  min_ansible_version: 2.10
+  galaxy_tags:
+    - planetway
+    - planetcross
+    - xroad
