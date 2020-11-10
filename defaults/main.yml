@@ -1,0 +1,24 @@
+
+px_ss_api_key: ""
+
+# Create API key automatically if px_ss_api_key is a empty string
+px_ss_api_key_auto_create: true
+
+# The Unix user name that has xroad-system-administrator permissions
+px_ui_user_name: admin
+
+# Unix password for px_ui_user_name, that should be ansible-vault encrypted
+px_ui_user_password: ""
+
+px_ss_api_instance: "JP-TEST"
+
+# List of subsystem objects that have these keys:
+# [ member_class, member_code, subsystem_code, connection_type ]
+px_ss_api_subsystems: []
+
+px_ss_api_validate_certs: false
+
+# ---
+
+# Internal variable that you shouldn't edit
+px_ss_api_do_create_api_key: false

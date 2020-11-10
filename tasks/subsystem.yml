@@ -1,0 +1,60 @@
+# https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml
+# 409 means "an existing item already exists"
+- name: Create a subsystem
+  uri:
+    url: https://localhost:4000/api/v1/clients
+    method: POST
+    body:
+      client:
+        member_class: "{{ item.member_class }}"
+        member_code: "{{ item.member_code }}"
+        subsystem_code: "{{ item.subsystem_code }}"
+        connection_type: "{{ item.connection_type }}"
+    status_code:
+      - 201
+      - 409
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_client_created
+
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_client_created }}"
+
+- name: Get subsystem information
+  uri:
+    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}"
+    method: GET
+    status_code:
+      - 200
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_client_get
+
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_client_get }}"
+
+- name: Register a subsystem
+  uri:
+    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/register"
+    method: PUT
+    status_code:
+      - 204
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_client_registered
+  when: px_ss_api_client_get.json.status == "SAVED"
+
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_client_registered }}"

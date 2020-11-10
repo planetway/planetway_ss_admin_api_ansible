@@ -1,0 +1,41 @@
+- name: Check if we should create an API key
+  set_fact:
+    px_ss_api_do_create_api_key: true
+  when: px_ss_api_key == "" and px_ss_api_key_auto_create == true
+
+- name: Create API key if necessary
+  shell: |
+    curl -k -X POST -u "{{ px_ui_user_name }}:{{ px_ui_user_password }}" https://localhost:4000/api/v1/api-keys --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header 'Content-Type: application/json' | jq .key
+  register: px_ss_api_key_created
+  when: px_ss_api_do_create_api_key == true
+  failed_when: px_ss_api_key_created.rc != 0
+
+- name: Show API key
+  debug:
+    msg: "px_ss_api_key created. Copy and ansible-vault encrypt it: {{ px_ss_api_key_created.stdout }}"
+  when: px_ss_api_do_create_api_key == true
+
+- name: Set px_ss_api_key
+  set_fact:
+    px_ss_api_key: "{{ px_ss_api_key_created.stdout }}"
+  when: px_ss_api_do_create_api_key == true
+
+- name: Create subsystems
+  include_tasks:
+    file: "tasks/subsystem.yml"
+    apply:
+      tags:
+        - px-ss-api-subsystems
+  tags:
+    - px-ss-api-subsystems
+  loop: "{{ px_ss_api_subsystems }}"
+
+- name: Create services
+  include_tasks:
+    file: "tasks/service.yml"
+    apply:
+      tags:
+        - px-ss-api-services
+  tags:
+    - px-ss-api-services
+  loop: "{{ px_ss_api_services }}"

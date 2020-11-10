@@ -1,0 +1,95 @@
+# https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml
+- name: Create a service
+  uri:
+    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/service-descriptions"
+    method: POST
+    body:
+      url: "{{ item.url }}"
+      rest_service_code: "{{ item.rest_service_code }}"
+      ignore_warnings: false
+      type: "{{ item.type }}"
+    status_code:
+      - 201
+      - 409
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_service_created
+
+- name: Debug
+  debug:
+    msg: "{{ px_ss_api_service_created }}"
+
+- name: Get service information
+  uri:
+    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/service-descriptions"
+    method: GET
+    status_code:
+      - 200
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_services_get
+
+- name: Debug
+  debug:
+    msg: "{{ px_ss_api_services_get }}"
+  
+- name: Select the service-description from the list
+  set_fact:
+    px_ss_api_service_this: "{{ px_ss_api_services_get | json_query(px_ss_api_service_this_query) }}"
+  vars:
+    # first service-description that matches given url
+    px_ss_api_service_this_query: "json[?url=='{{ item.url }}'] | [0]"
+  
+- name: Debug
+  debug:
+    msg: "{{ px_ss_api_service_this }}"
+  
+- name: Enable service
+  uri:
+    url: "https://localhost:4000/api/v1/service-descriptions/{{ px_ss_api_service_this.id }}/enable"
+    method: PUT
+    status_code:
+      # in the OpenAPI document it's 204
+      - 200
+      - 204
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_service_enabled
+  when: item.enabled == true and px_ss_api_service_this.disabled == true
+
+- name: Debug
+  debug:
+    msg: "{{ px_ss_api_service_enabled }}"
+  when: item.enabled == true and px_ss_api_service_this.disabled == true
+  
+- name: Disable service
+  uri:
+    url: "https://localhost:4000/api/v1/service-descriptions/{{ px_ss_api_service_this.id }}/disable"
+    method: PUT
+    status_code:
+      # in the OpenAPI document it's 204
+      - 200
+      - 204
+    body_format: json
+    body:
+      disabled_notice: "{{ item.disabled_notice }}"
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_service_disabled
+  when: item.enabled == false and px_ss_api_service_this.disabled == false
+
+- name: Debug
+  debug:
+    msg: "{{ px_ss_api_service_disabled }}"
+  when: item.enabled == false and px_ss_api_service_this.disabled == false
