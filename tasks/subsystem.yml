@@ -19,6 +19,7 @@
       Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_client_created
+  changed_when: px_ss_api_client_created.status == 201
 
 # - name: Debug
 #   debug:
@@ -36,6 +37,7 @@
       Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_client_get
+  changed_when: false
 
 # - name: Debug
 #   debug:
@@ -54,6 +56,7 @@
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_client_registered
   when: px_ss_api_client_get.json.status == "SAVED"
+  changed_when: px_ss_api_client_registered.status == 204
 
 # - name: Debug
 #   debug:

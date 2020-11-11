@@ -39,3 +39,15 @@
   tags:
     - px-ss-api-services
   loop: "{{ px_ss_api_services }}"
+
+- name: Create acls
+  include_tasks:
+    file: "tasks/acl.yml"
+    apply:
+      tags:
+        - px-ss-api-acls
+  tags:
+    - px-ss-api-acls
+  loop: "{{ px_ss_api_acls }}"
+  loop_control:
+    loop_var: acl_item

@@ -17,10 +17,11 @@
       Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_service_created
+  changed_when: px_ss_api_service_created.status == 201
 
-- name: Debug
-  debug:
-    msg: "{{ px_ss_api_service_created }}"
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_service_created }}"
 
 - name: Get service information
   uri:
@@ -34,10 +35,11 @@
       Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_services_get
+  changed_when: false
 
-- name: Debug
-  debug:
-    msg: "{{ px_ss_api_services_get }}"
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_services_get }}"
   
 - name: Select the service-description from the list
   set_fact:
@@ -46,9 +48,9 @@
     # first service-description that matches given url
     px_ss_api_service_this_query: "json[?url=='{{ item.url }}'] | [0]"
   
-- name: Debug
-  debug:
-    msg: "{{ px_ss_api_service_this }}"
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_service_this }}"
   
 - name: Enable service
   uri:
@@ -65,11 +67,12 @@
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_service_enabled
   when: item.enabled == true and px_ss_api_service_this.disabled == true
+  changed_when: px_ss_api_service_enabled.status == 200
 
-- name: Debug
-  debug:
-    msg: "{{ px_ss_api_service_enabled }}"
-  when: item.enabled == true and px_ss_api_service_this.disabled == true
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_service_enabled }}"
+#   when: item.enabled == true and px_ss_api_service_this.disabled == true
   
 - name: Disable service
   uri:
@@ -88,8 +91,9 @@
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_service_disabled
   when: item.enabled == false and px_ss_api_service_this.disabled == false
+  changed_when: px_ss_api_service_disabled.status == 200
 
-- name: Debug
-  debug:
-    msg: "{{ px_ss_api_service_disabled }}"
-  when: item.enabled == false and px_ss_api_service_this.disabled == false
+# - name: Debug
+#   debug:
+#     msg: "{{ px_ss_api_service_disabled }}"
+#   when: item.enabled == false and px_ss_api_service_this.disabled == false

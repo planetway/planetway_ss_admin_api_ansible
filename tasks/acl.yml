@@ -1,0 +1,25 @@
+# https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml
+# Loop over multiple subsystems and call the Admin API one by one
+- name: Add access rights
+  uri:
+    url: "https://localhost:4000/api/v1/services/{{ acl_item.service_id }}/service-clients"
+    method: POST
+    body:
+      items: [ "{{ item }}" ]
+    status_code:
+      # actually returns 200
+      - 200
+      - 201
+      - 409
+    body_format: json
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: result
+  changed_when: result.status == 200 or result.status == 201
+  loop: "{{ acl_item.client_subsystems }}"
+
+# - name: Debug
+#   debug:
+#     msg: "{{ result }}"
