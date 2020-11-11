@@ -12,9 +12,34 @@ px_ui_user_password: ""
 
 px_ss_api_instance: "JP-TEST"
 
-# List of subsystem objects that have these keys:
-# [ member_class, member_code, subsystem_code, connection_type ]
+# List of subsystems, services, acls
+
+# for example:
+# px_ss_api_subsystems:
+#   -
+#     member_class: "COM"
+#     member_code: "0170121212121"
+#     subsystem_code: "flow"
+#     connection_type: "HTTPS"
+# px_ss_api_services:
+#   -
+#     member_class: "COM"
+#     member_code: "0170121212121"
+#     subsystem_code: "flow"
+#     url: "http://127.0.0.1:10080/openapi"
+#     rest_service_code: "processes"
+#     type: "OPENAPI3"
+#     enabled: true
+# px_ss_api_acls:
+#   -
+#     service_id: "JP-TEST:COM:0170121212121:flow:processes"
+#     client_subsystems:
+#       -
+#         id: "JP-TEST:COM:0170121212121:subsystem"
+
 px_ss_api_subsystems: []
+px_ss_api_services: []
+px_ss_api_acls: []
 
 px_ss_api_validate_certs: false
 
