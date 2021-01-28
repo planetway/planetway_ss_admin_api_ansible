@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: ss
+  tasks:
+    - name: "Include planetway_ss_admin_api_ansible"
+      include_role:
+        name: "planetway_ss_admin_api_ansible"
