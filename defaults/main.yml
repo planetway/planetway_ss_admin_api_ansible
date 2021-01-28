@@ -1,8 +1,11 @@
-
+# It is possible to set a predefined api key, to avoid recreation on every run
 px_ss_api_key: ""
 
 # Create API key automatically if px_ss_api_key is a empty string
 px_ss_api_key_auto_create: true
+
+# API URI, defaults to localhost
+px_ss_api_uri: https://localhost:4000
 
 # The Unix user name that has xroad-system-administrator permissions
 px_ui_user_name: admin

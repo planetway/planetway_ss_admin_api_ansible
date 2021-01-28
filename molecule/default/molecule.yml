@@ -53,6 +53,8 @@ platforms:
         ipv4_address: "10.0.0.11"
 provisioner:
   name: ansible
+  lint:
+    name: ansible-lint
 verifier:
   name: ansible
 scenario:

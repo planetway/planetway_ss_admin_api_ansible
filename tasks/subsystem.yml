@@ -2,7 +2,7 @@
 # 409 means "an existing item already exists"
 - name: Create a subsystem
   uri:
-    url: https://localhost:4000/api/v1/clients
+    url: "{{ px_ss_api_uri }}/api/v1/clients"
     method: POST
     body:
       client:
@@ -27,7 +27,7 @@
 
 - name: Get subsystem information
   uri:
-    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}"
+    url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}"
     method: GET
     status_code:
       - 200
@@ -45,7 +45,7 @@
 
 - name: Register a subsystem
   uri:
-    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/register"
+    url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/register"
     method: PUT
     status_code:
       - 204

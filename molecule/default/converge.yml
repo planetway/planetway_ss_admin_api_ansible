@@ -1,7 +1,30 @@
 ---
 - name: Converge
   hosts: ss
+  vars:
+    px_ui_user_password: Secret.1234
+    px_ss_api_subsystems:
+      - member_class: "COM"
+        member_code: "0170121212121"
+        subsystem_code: "flow"
+        connection_type: "HTTPS"
+    px_ss_api_services:
+      - member_class: "COM"
+        member_code: "0170121212121"
+        subsystem_code: "flow"
+        url: "http://127.0.0.1:10080/openapi"
+        rest_service_code: "processes"
+        type: "OPENAPI3"
+        enabled: true
+    px_ss_api_acls:
+      - service_id: "JP-TEST:COM:0170121212121:flow:processes"
+        client_subsystems:
+          - id: "JP-TEST:COM:0170121212121:subsystem"
   tasks:
+    - name: Waiting for ui-proxy-api
+      wait_for:
+        port: 4000
+        timeout: 300
     - name: "Include planetway_ss_admin_api_ansible"
       include_role:
         name: "planetway_ss_admin_api_ansible"

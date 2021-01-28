@@ -1,53 +1,71 @@
-- name: Check if we should create an API key
-  set_fact:
-    px_ss_api_do_create_api_key: true
-  when: px_ss_api_key == "" and px_ss_api_key_auto_create == true
+---
+- name: Configure security server
+  block:
+    - name: Check if we should create an API key
+      set_fact:
+        px_ss_api_do_create_api_key: true
+      when: px_ss_api_key == "" and px_ss_api_key_auto_create == true
 
-- name: Create API key if necessary
-  shell: |
-    curl -k -X POST -u "{{ px_ui_user_name }}:{{ px_ui_user_password }}" https://localhost:4000/api/v1/api-keys --data '["XROAD_SERVICE_ADMINISTRATOR","XROAD_REGISTRATION_OFFICER"]' --header 'Content-Type: application/json' | jq .key
-  register: px_ss_api_key_created
-  when: px_ss_api_do_create_api_key == true
-  failed_when: px_ss_api_key_created.rc != 0
+    - name: Create API key if necessary
+      uri:
+        url: "{{ px_ss_api_uri }}/api/v1/api-keys"
+        user: "{{ px_ui_user_name }}"
+        password: "{{ px_ui_user_password }}"
+        method: POST
+        body:
+          - XROAD_SECURITYSERVER_OBSERVER
+          - XROAD_REGISTRATION_OFFICER
+        body_format: json
+        headers:
+          Content-Type: application/json
+        validate_certs: "{{ px_ss_api_validate_certs }}"
+      register: px_ss_api_key_created
+      when: px_ss_api_do_create_api_key == true
 
-- name: Show API key
-  debug:
-    msg: "px_ss_api_key created. Copy and ansible-vault encrypt it: {{ px_ss_api_key_created.stdout }}"
-  when: px_ss_api_do_create_api_key == true
+    - name: Set px_ss_api_key and px_ss_api_key_id
+      set_fact:
+        px_ss_api_key: "{{ px_ss_api_key_created.json['key'] }}"
+        px_ss_api_key_id: "{{ px_ss_api_key_created.json['id'] }}"
+      when: px_ss_api_do_create_api_key == true
 
-- name: Set px_ss_api_key
-  set_fact:
-    px_ss_api_key: "{{ px_ss_api_key_created.stdout }}"
-  when: px_ss_api_do_create_api_key == true
-
-- name: Create subsystems
-  include_tasks:
-    file: "tasks/subsystem.yml"
-    apply:
+    - name: Create subsystems
+      include_tasks:
+        file: "tasks/subsystem.yml"
+        apply:
+          tags:
+            - px-ss-api-subsystems
       tags:
         - px-ss-api-subsystems
-  tags:
-    - px-ss-api-subsystems
-  loop: "{{ px_ss_api_subsystems }}"
+      loop: "{{ px_ss_api_subsystems }}"
 
-- name: Create services
-  include_tasks:
-    file: "tasks/service.yml"
-    apply:
+    - name: Create services
+      include_tasks:
+        file: "tasks/service.yml"
+        apply:
+          tags:
+            - px-ss-api-services
       tags:
         - px-ss-api-services
-  tags:
-    - px-ss-api-services
-  loop: "{{ px_ss_api_services }}"
+      loop: "{{ px_ss_api_services }}"
 
-- name: Create acls
-  include_tasks:
-    file: "tasks/acl.yml"
-    apply:
+    - name: Create acls
+      include_tasks:
+        file: "tasks/acl.yml"
+        apply:
+          tags:
+            - px-ss-api-acls
       tags:
         - px-ss-api-acls
-  tags:
-    - px-ss-api-acls
-  loop: "{{ px_ss_api_acls }}"
-  loop_control:
-    loop_var: acl_item
+      loop: "{{ px_ss_api_acls }}"
+      loop_control:
+        loop_var: acl_item
+
+  always:
+    - name: Destroy API key
+      uri:
+        url: "{{ px_ss_api_uri }}/api/v1/api-keys/{{ px_ss_api_key_id }}"
+        user: "{{ px_ui_user_name }}"
+        password: "{{ px_ui_user_password }}"
+        method: DELETE
+        validate_certs: "{{ px_ss_api_validate_certs }}"
+      when: px_ss_api_do_create_api_key == true

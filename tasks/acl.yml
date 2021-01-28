@@ -2,7 +2,7 @@
 # Loop over multiple subsystems and call the Admin API one by one
 - name: Add access rights
   uri:
-    url: "https://localhost:4000/api/v1/services/{{ acl_item.service_id }}/service-clients"
+    url: "{{ px_ss_api_uri }}/api/v1/services/{{ acl_item.service_id }}/service-clients"
     method: POST
     body:
       items: [ "{{ item }}" ]
