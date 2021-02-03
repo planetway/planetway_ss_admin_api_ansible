@@ -3,23 +3,25 @@
   hosts: ss
   vars:
     px_ui_user_password: Secret.1234
-    px_ss_api_subsystems:
+    px_ss_public_endpoint: "ss01-local"
+    px_ss_api_clients:
       - member_class: "COM"
-        member_code: "0170121212121"
-        subsystem_code: "flow"
-        connection_type: "HTTPS"
-    px_ss_api_services:
-      - member_class: "COM"
-        member_code: "0170121212121"
-        subsystem_code: "flow"
-        url: "http://127.0.0.1:10080/openapi"
-        rest_service_code: "processes"
-        type: "OPENAPI3"
-        enabled: true
-    px_ss_api_acls:
-      - service_id: "JP-TEST:COM:0170121212121:flow:processes"
-        client_subsystems:
-          - id: "JP-TEST:COM:0170121212121:subsystem"
+        member_code: "0170000000000"
+        subsystem_code: "data-bank-local"
+        connection_type: "HTTP"
+        enrollment_token: "password"
+    #px_ss_api_services:
+    #  - member_class: "COM"
+    #    member_code: "0170121212121"
+    #    subsystem_code: "flow"
+    #    url: "http://127.0.0.1:10080/openapi"
+    #    rest_service_code: "processes"
+    #    type: "OPENAPI3"
+    #    enabled: true
+    #px_ss_api_acls:
+    #  - service_id: "JP-TEST:COM:0170121212121:flow:processes"
+    #    client_subsystems:
+    #      - id: "JP-TEST:COM:0170121212121:subsystem"
   tasks:
     - name: Waiting for ui-proxy-api
       wait_for:

@@ -1,6 +1,6 @@
 # https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml
 # 409 means "an existing item already exists"
-- name: Create a subsystem
+- name: Create a client
   uri:
     url: "{{ px_ss_api_uri }}/api/v1/clients"
     method: POST
@@ -21,9 +21,13 @@
   register: px_ss_api_client_created
   changed_when: px_ss_api_client_created.status == 201
 
-# - name: Debug
-#   debug:
-#     msg: "{{ px_ss_api_client_created }}"
+# Generate keys, CSRs, request certificates and push to API
+# Include tasks from create_signing_keys.yml
+- name: Enroll client certificate
+  include_tasks: "tasks/keys.yml"
+  vars:
+    key_type: "sign"
+    key_usage_type: "SIGNING"
 
 - name: Get subsystem information
   uri:
@@ -39,10 +43,6 @@
   register: px_ss_api_client_get
   changed_when: false
 
-# - name: Debug
-#   debug:
-#     msg: "{{ px_ss_api_client_get }}"
-
 - name: Register a subsystem
   uri:
     url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/register"
@@ -57,7 +57,3 @@
   register: px_ss_api_client_registered
   when: px_ss_api_client_get.json.status == "SAVED"
   changed_when: px_ss_api_client_registered.status == 204
-
-# - name: Debug
-#   debug:
-#     msg: "{{ px_ss_api_client_registered }}"

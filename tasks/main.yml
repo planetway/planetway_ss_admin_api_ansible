@@ -13,6 +13,7 @@
         password: "{{ px_ui_user_password }}"
         method: POST
         body:
+          - XROAD_SECURITY_OFFICER
           - XROAD_SECURITYSERVER_OBSERVER
           - XROAD_REGISTRATION_OFFICER
         body_format: json
@@ -21,6 +22,7 @@
         validate_certs: "{{ px_ss_api_validate_certs }}"
       register: px_ss_api_key_created
       when: px_ss_api_do_create_api_key == true
+      changed_when: px_ss_api_key_created.status == 200
 
     - name: Set px_ss_api_key and px_ss_api_key_id
       set_fact:
@@ -28,15 +30,24 @@
         px_ss_api_key_id: "{{ px_ss_api_key_created.json['id'] }}"
       when: px_ss_api_do_create_api_key == true
 
-    - name: Create subsystems
+    # Cleanup orphaned keys and CSRs from previous runs.
+    - name: Cleanup orphan objects
       include_tasks:
-        file: "tasks/subsystem.yml"
+        file: "tasks/clean.yml"
+
+    - name: Register security server
+      include_tasks:
+        file: "tasks/register.yml"
+
+    - name: Create clients
+      include_tasks:
+        file: "tasks/client.yml"
         apply:
           tags:
-            - px-ss-api-subsystems
+            - px-ss-api-clients
       tags:
-        - px-ss-api-subsystems
-      loop: "{{ px_ss_api_subsystems }}"
+        - px-ss-api-clients
+      loop: "{{ px_ss_api_clients }}"
 
     - name: Create services
       include_tasks:
@@ -68,4 +79,6 @@
         password: "{{ px_ui_user_password }}"
         method: DELETE
         validate_certs: "{{ px_ss_api_validate_certs }}"
+      register: px_ss_api_key_destroyed
       when: px_ss_api_do_create_api_key == true
+      changed_when: px_ss_api_key_destroyed.status == 200

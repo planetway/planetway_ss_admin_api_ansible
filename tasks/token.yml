@@ -1,0 +1,14 @@
+---
+- name: Get available tokens
+  ansible.builtin.uri:
+    url: "{{ px_ss_api_uri }}/api/v1/tokens"
+    method: GET
+    body_format: json
+    status_code:
+      - 200
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_tokens_get
+  changed_when: false

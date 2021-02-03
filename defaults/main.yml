@@ -15,6 +15,9 @@ px_ui_user_password: ""
 
 px_ss_api_instance: "JP-TEST"
 
+px_ss_api_ca: "TEST of Planetway Root CA 2020"
+px_ss_api_ca_enrollment_endpoint: "https://enroll.test.planetcross.net"
+px_ss_api_token: "softToken-0"
 # List of subsystems, services, acls
 
 # for example:
@@ -39,6 +42,8 @@ px_ss_api_instance: "JP-TEST"
 #     client_subsystems:
 #       -
 #         id: "JP-TEST:COM:0170121212121:subsystem"
+
+px_ss_api_keys_and_certificates: []
 
 px_ss_api_subsystems: []
 px_ss_api_services: []
