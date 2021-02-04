@@ -7,6 +7,7 @@ platforms:
   - name: postgres
     image: docker.io/postgres:12.5
     pre_build_image: true
+    memory: 256M
     published_ports:
       - "5432:5432"
     command: postgres
@@ -25,6 +26,7 @@ platforms:
   - name: petstore
     image: openapitools/openapi-petstore
     pre_build_image: true
+    memory: 768M
     published_ports:
       - "8080:8080"
     command: java -Dopenapi.openAPIPetstore.base-path=${OPENAPI_BASE_PATH} -jar /petstore/openapi-petstore.jar
@@ -37,6 +39,7 @@ platforms:
   - name: soapui
     image: fbascheper/soapui-mockservice-runner
     pre_build_image: true
+    memory: 256M
     published_ports:
       - "8081:8080"
     command: start-soapui
@@ -49,6 +52,7 @@ platforms:
   - name: ss
     image: docker.io/planetway/xroad-securityserver:6.24.1-1
     pre_build_image: true
+    memory: 2G
     published_ports:
       - "4000:4000"
     command: bash -c "/files/initdb.sh && /files/cmd.sh"
