@@ -7,7 +7,7 @@
       when: px_ss_api_key == "" and px_ss_api_key_auto_create == true
 
     - name: Create API key if necessary
-      uri:
+      ansible.builtin.uri:
         url: "{{ px_ss_api_uri }}/api/v1/api-keys"
         user: "{{ px_ui_user_name }}"
         password: "{{ px_ui_user_password }}"
@@ -60,21 +60,19 @@
         - px-ss-api-services
       loop: "{{ px_ss_api_clients | subelements('services', skip_missing=True) }}"
 
-    - name: Create acls
+    - name: Create service clients
       include_tasks:
-        file: "tasks/acl.yml"
+        file: "tasks/service_clients.yml"
         apply:
           tags:
             - px-ss-api-acls
       tags:
         - px-ss-api-acls
-      loop: "{{ px_ss_api_acls }}"
-      loop_control:
-        loop_var: acl_item
+      loop: "{{ px_ss_api_clients | subelements('services', skip_missing=True) }}"
 
   always:
     - name: Destroy API key
-      uri:
+      ansible.builtin.uri:
         url: "{{ px_ss_api_uri }}/api/v1/api-keys/{{ px_ss_api_key_id }}"
         user: "{{ px_ui_user_name }}"
         password: "{{ px_ui_user_password }}"

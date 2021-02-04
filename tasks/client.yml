@@ -1,7 +1,8 @@
 # https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml
 # 409 means "an existing item already exists"
+---
 - name: Create a client
-  uri:
+  ansible.builtin.uri:
     url: "{{ px_ss_api_uri }}/api/v1/clients"
     method: POST
     body:
@@ -30,7 +31,7 @@
     key_usage_type: "SIGNING"
 
 - name: Get subsystem information
-  uri:
+  ansible.builtin.uri:
     url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}"
     method: GET
     status_code:
@@ -44,7 +45,7 @@
   changed_when: false
 
 - name: Register a subsystem
-  uri:
+  ansible.builtin.uri:
     url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/register"
     method: PUT
     status_code:

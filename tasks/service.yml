@@ -1,12 +1,12 @@
----
 # https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml
+---
 - name: Create a service
-  uri:
+  ansible.builtin.uri:
     url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.0.member_class }}:{{ item.0.member_code }}:{{ item.0.subsystem_code }}/service-descriptions"
     method: POST
     body:
       url: "{{ item.1.url }}"
-      rest_service_code: "{{ item.1.rest_service_code | default(omit) }}"
+      rest_service_code: "{{ item.1.service_code | default(omit) }}"
       ignore_warnings: false
       type: "{{ item.1.type }}"
     status_code:
@@ -21,7 +21,7 @@
   changed_when: px_ss_api_service_created.status == 201
 
 - name: Get service information
-  uri:
+  ansible.builtin.uri:
     url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.0.member_class }}:{{ item.0.member_code }}:{{ item.0.subsystem_code }}/service-descriptions"
     method: GET
     status_code:
@@ -42,7 +42,7 @@
     px_ss_api_service_this_query: "json[?url=='{{ item.1.url }}'] | [0]"
 
 - name: Enable service
-  uri:
+  ansible.builtin.uri:
     url: "{{ px_ss_api_uri }}/api/v1/service-descriptions/{{ px_ss_api_service_this.id }}/enable"
     method: PUT
     status_code:
@@ -59,7 +59,7 @@
   changed_when: px_ss_api_service_enabled.status == 200
 
 - name: Disable service
-  uri:
+  ansible.builtin.uri:
     url: "{{ px_ss_api_uri }}/api/v1/service-descriptions/{{ px_ss_api_service_this.id }}/disable"
     method: PUT
     status_code:
