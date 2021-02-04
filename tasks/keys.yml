@@ -3,14 +3,13 @@
   include_tasks:
     file: "tasks/token.yml"
 
-# Helper variable for json query
-# https://stackoverflow.com/questions/46038985/ansible-pass-a-variable-in-a-json-query-filter
-- set_fact:
-    json_query_for_token: '[?name==`{{ px_ss_api_token }}`].id'
-    json_query_for_token_keys: '[?name==`{{ px_ss_api_token }}`].keys[].name'
-- set_fact:
+- name: Query token and keys
+  set_fact:
     px_ss_api_token_id: "{{ px_ss_api_tokens_get.json | community.general.json_query(json_query_for_token) | join(' ') }}"
     px_ss_api_token_keys: "{{ px_ss_api_tokens_get.json | community.general.json_query(json_query_for_token_keys) }}"
+  vars:
+    json_query_for_token: '[?name==`{{ px_ss_api_token }}`].id'
+    json_query_for_token_keys: '[?name==`{{ px_ss_api_token }}`].keys[].name'
 
 - name: Enroll certificate
   block:
@@ -39,7 +38,8 @@
     register: px_ss_api_token_create_keys_with_csrs
     changed_when: px_ss_api_token_create_keys_with_csrs.status == 200
 
-  - set_fact:
+  - name: Set key_id and csr_id
+    set_fact:
       key_id: "{{ px_ss_api_token_create_keys_with_csrs.json.key.id }}"
       csr_id: "{{ px_ss_api_token_create_keys_with_csrs.json.csr_id }}"
 
@@ -59,17 +59,18 @@
     register: px_ss_api_csr
     changed_when: true
 
+  # ansible.builtin.uri quotes multiline boundary strings
+  # This causes mod_security to block our requests, so we are using curl instead
   - name: Request certificate
-    uri:
-      url: "{{ px_ss_api_ca_enrollment_endpoint }}"
-      method: POST
-      body_format: form-multipart
-      body:
-        user: "{{ key_type }}-{{ item.member_code }}"
-        password: "{{ item.enrollment_token }}"
-        pkcs10req: "{{ px_ss_api_csr.content }}"
-        resulttype: "4"
-      return_content: true
+    ansible.builtin.shell: >
+      curl -s -L "{{ px_ss_api_ca_enrollment_endpoint }}"
+      -F user="{{ key_type }}-{{ item.member_code }}"
+      -F password="{{ item.enrollment_token }}"
+      -F pkcs10req="{{ px_ss_api_csr.content }}"
+      -F resulttype=4
+    args:
+      executable: /bin/bash
+      warn: false
     register: px_ss_api_cert
     changed_when: true
 
@@ -78,7 +79,7 @@
       url: "{{ px_ss_api_uri }}/api/v1/token-certificates"
       method: POST
       body:
-        "{{ px_ss_api_cert.content }}"
+        "{{ px_ss_api_cert.stdout }}"
       status_code:
         - 200
         - 201

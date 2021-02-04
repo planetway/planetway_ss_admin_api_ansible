@@ -3,12 +3,11 @@
   include_tasks:
     file: "tasks/token.yml"
 
-# Helper variable for json query
-# https://stackoverflow.com/questions/46038985/ansible-pass-a-variable-in-a-json-query-filter
-- set_fact:
-    json_query_orphaned_keys_and_csrs: 'json[].keys[?!(not_null(certificates))].{id: id, csrs: certificate_signing_requests[].id}[]'
-- set_fact:
+- name: Query orphaned keys and CSRs
+  set_fact:
     px_ss_api_orphaned_keys_and_csrs: "{{ px_ss_api_tokens_get | community.general.json_query(json_query_orphaned_keys_and_csrs) }}"
+  vars:
+    json_query_orphaned_keys_and_csrs: 'json[].keys[?!(not_null(certificates))].{id: id, csrs: certificate_signing_requests[].id}[]'
 
 # Delete CSRs
 - name: Delete orphaned CSRs
@@ -23,7 +22,7 @@
       Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_delete_existing_csrs
-  loop: "{{ q('subelements', px_ss_api_orphaned_keys_and_csrs, 'csrs', {'skip_missing': True}) }}"
+  loop: "{{ px_ss_api_orphaned_keys_and_csrs | subelements ('csrs', skip_missing=True) }}"
   loop_control:
     loop_var: csr_item
   changed_when: px_ss_api_delete_existing_csrs.status == 204

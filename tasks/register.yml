@@ -3,12 +3,11 @@
   include_tasks:
     file: "tasks/token.yml"
 
-# Helper variable for json query
-# https://stackoverflow.com/questions/46038985/ansible-pass-a-variable-in-a-json-query-filter
-- set_fact:
-    json_query_authentication: "json[].keys[?usage=='AUTHENTICATION'].certificates[]"
-- set_fact:
+- name: Query authentication certificate
+  set_fact:
     px_ss_api_authentication: "{{ px_ss_api_tokens_get | community.general.json_query(json_query_authentication) | flatten }}"
+  var:
+    json_query_authentication: "json[].keys[?usage=='AUTHENTICATION'].certificates[]"
 
 - name: Activate authentication certificate
   ansible.builtin.uri:
@@ -41,7 +40,6 @@
   register: px_ss_register
   when: 'px_ss_api_authentication[0].status == "SAVED"'
   changed_when: px_ss_register.status == 204
-
 
 # Refresh available tokens
 # Helper variable for json query
