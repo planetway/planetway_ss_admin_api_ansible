@@ -14,8 +14,9 @@
         method: POST
         body:
           - XROAD_SECURITY_OFFICER
-          - XROAD_SECURITYSERVER_OBSERVER
           - XROAD_REGISTRATION_OFFICER
+          - XROAD_SERVICE_ADMINISTRATOR
+          - XROAD_SECURITYSERVER_OBSERVER
         body_format: json
         headers:
           Content-Type: application/json
@@ -57,7 +58,7 @@
             - px-ss-api-services
       tags:
         - px-ss-api-services
-      loop: "{{ px_ss_api_services }}"
+      loop: "{{ px_ss_api_clients | subelements('services', skip_missing=True) }}"
 
     - name: Create acls
       include_tasks:

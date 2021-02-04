@@ -6,7 +6,7 @@
 - name: Query authentication certificate
   set_fact:
     px_ss_api_authentication: "{{ px_ss_api_tokens_get | community.general.json_query(json_query_authentication) | flatten }}"
-  var:
+  vars:
     json_query_authentication: "json[].keys[?usage=='AUTHENTICATION'].certificates[]"
 
 - name: Activate authentication certificate

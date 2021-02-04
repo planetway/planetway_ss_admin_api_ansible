@@ -10,14 +10,20 @@
         subsystem_code: "data-bank-local"
         connection_type: "HTTP"
         enrollment_token: "password"
-    #px_ss_api_services:
-    #  - member_class: "COM"
-    #    member_code: "0170121212121"
-    #    subsystem_code: "flow"
-    #    url: "http://127.0.0.1:10080/openapi"
-    #    rest_service_code: "processes"
-    #    type: "OPENAPI3"
-    #    enabled: true
+        services:
+          - type: "OPENAPI3"
+            url: "http://petstore:8080/openapi.json"
+            rest_service_code: "petstore-openapi3"
+            enabled: true
+            disabled_notice: "Temporarily disabled"
+          - type: "REST"
+            url: "http://petstore:8080"
+            rest_service_code: "petstore-rest"
+            enabled: false
+            disabled_notice: "Temporarily disabled"
+          - type: "WSDL"
+            url: "http://soapui:8080/BLZ-SOAP11-MockService?WSDL"
+            enabled: true
     #px_ss_api_acls:
     #  - service_id: "JP-TEST:COM:0170121212121:flow:processes"
     #    client_subsystems:

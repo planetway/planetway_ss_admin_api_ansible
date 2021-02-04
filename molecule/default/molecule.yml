@@ -22,6 +22,30 @@ platforms:
     networks:
       - name: px
         ipv4_address: "10.0.0.10"
+  - name: petstore
+    image: openapitools/openapi-petstore
+    pre_build_image: true
+    published_ports:
+      - "8080:8080"
+    command: java -Dopenapi.openAPIPetstore.base-path=${OPENAPI_BASE_PATH} -jar /petstore/openapi-petstore.jar
+    env:
+      OPENAPI_BASE_PATH: /v3
+    network_mode: default
+    networks:
+      - name: px
+        ipv4_address: "10.0.0.20"
+  - name: soapui
+    image: fbascheper/soapui-mockservice-runner
+    pre_build_image: true
+    published_ports:
+      - "8081:8080"
+    command: start-soapui
+    env:
+      MOCK_SERVICE_NAME: BLZ-SOAP11-MockService
+    network_mode: default
+    networks:
+      - name: px
+        ipv4_address: "10.0.0.21"
   - name: ss
     image: docker.io/planetway/xroad-securityserver:6.24.1-1
     pre_build_image: true
@@ -50,7 +74,7 @@ platforms:
     network_mode: default
     networks:
       - name: px
-        ipv4_address: "10.0.0.11"
+        ipv4_address: "10.0.0.30"
 provisioner:
   name: ansible
   lint:
