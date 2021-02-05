@@ -1,0 +1,46 @@
+---
+- name: Get tokens
+  include_tasks:
+    file: "tasks/token.yml"
+
+- name: Query orphaned keys and CSRs
+  set_fact:
+    px_ss_api_orphaned_keys_and_csrs: "{{ px_ss_api_tokens_get | community.general.json_query(json_query_orphaned_keys_and_csrs) }}"
+  vars:
+    json_query_orphaned_keys_and_csrs: 'json[].keys[?!(not_null(certificates))].{id: id, csrs: certificate_signing_requests[].id}[]'
+
+# Delete CSRs
+- name: Delete orphaned CSRs
+  ansible.builtin.uri:
+    url: "{{ px_ss_api_uri }}/api/v1/keys/{{ csr_item.0.id }}/csrs/{{ csr_item.1 }}"
+    method: DELETE
+    body_format: json
+    status_code:
+      - 204
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_delete_existing_csrs
+  loop: "{{ px_ss_api_orphaned_keys_and_csrs | subelements ('csrs', skip_missing=True) }}"
+  loop_control:
+    loop_var: csr_item
+  changed_when: px_ss_api_delete_existing_csrs.status == 204
+
+- name: Delete orphaned keys
+  ansible.builtin.uri:
+    url: "{{ px_ss_api_uri }}/api/v1/keys/{{ key_item.id }}"
+    method: DELETE
+    body_format: json
+    status_code:
+      - 204
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_delete_unused_keys
+  loop: "{{ px_ss_api_orphaned_keys_and_csrs }}"
+  loop_control:
+    loop_var: key_item
+  when: px_ss_api_orphaned_keys_and_csrs
+  changed_when: px_ss_api_delete_unused_keys.status == 204

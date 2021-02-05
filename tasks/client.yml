@@ -1,8 +1,9 @@
 # https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml
 # 409 means "an existing item already exists"
-- name: Create a subsystem
-  uri:
-    url: https://localhost:4000/api/v1/clients
+---
+- name: Create a client
+  ansible.builtin.uri:
+    url: "{{ px_ss_api_uri }}/api/v1/clients"
     method: POST
     body:
       client:
@@ -21,13 +22,17 @@
   register: px_ss_api_client_created
   changed_when: px_ss_api_client_created.status == 201
 
-# - name: Debug
-#   debug:
-#     msg: "{{ px_ss_api_client_created }}"
+# Generate keys, CSRs, request certificates and push to API
+# Include tasks from create_signing_keys.yml
+- name: Enroll client certificate
+  include_tasks: "tasks/keys.yml"
+  vars:
+    key_type: "sign"
+    key_usage_type: "SIGNING"
 
 - name: Get subsystem information
-  uri:
-    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}"
+  ansible.builtin.uri:
+    url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}"
     method: GET
     status_code:
       - 200
@@ -39,13 +44,9 @@
   register: px_ss_api_client_get
   changed_when: false
 
-# - name: Debug
-#   debug:
-#     msg: "{{ px_ss_api_client_get }}"
-
 - name: Register a subsystem
-  uri:
-    url: "https://localhost:4000/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/register"
+  ansible.builtin.uri:
+    url: "{{ px_ss_api_uri }}/api/v1/clients/{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}:{{ item.subsystem_code }}/register"
     method: PUT
     status_code:
       - 204
@@ -57,7 +58,3 @@
   register: px_ss_api_client_registered
   when: px_ss_api_client_get.json.status == "SAVED"
   changed_when: px_ss_api_client_registered.status == 204
-
-# - name: Debug
-#   debug:
-#     msg: "{{ px_ss_api_client_registered }}"

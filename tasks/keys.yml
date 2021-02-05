@@ -1,0 +1,93 @@
+---
+- name: Get tokens
+  include_tasks:
+    file: "tasks/token.yml"
+
+- name: Query token and keys
+  set_fact:
+    px_ss_api_token_id: "{{ px_ss_api_tokens_get.json | community.general.json_query(json_query_for_token) | join(' ') }}"
+    px_ss_api_token_keys: "{{ px_ss_api_tokens_get.json | community.general.json_query(json_query_for_token_keys) }}"
+  vars:
+    json_query_for_token: '[?name==`{{ px_ss_api_token }}`].id'
+    json_query_for_token_keys: '[?name==`{{ px_ss_api_token }}`].keys[].name'
+
+- name: Enroll certificate
+  block:
+  - name: Create key and CSR
+    ansible.builtin.uri:
+      url: "{{ px_ss_api_uri }}/api/v1/tokens/{{ px_ss_api_token_id }}/keys-with-csrs"
+      method: POST
+      body_format: json
+      body:
+        key_label: "{{ key_type }}-{{ item.member_code }}"
+        csr_generate_request:
+          key_usage_type: "{{ key_usage_type }}"
+          ca_name: "{{ px_ss_api_ca }}"
+          csr_format: "PEM"
+          member_id: "{{ px_ss_api_instance }}:{{ item.member_class }}:{{ item.member_code }}"
+          subject_field_values:
+            CN: "{{ item.member_code }}"
+      status_code:
+        - 200
+        - 201
+        - 409
+      headers:
+        Content-Type: application/json
+        Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+      validate_certs: "{{ px_ss_api_validate_certs }}"
+    register: px_ss_api_token_create_keys_with_csrs
+    changed_when: px_ss_api_token_create_keys_with_csrs.status == 200
+
+  - name: Set key_id and csr_id
+    set_fact:
+      key_id: "{{ px_ss_api_token_create_keys_with_csrs.json.key.id }}"
+      csr_id: "{{ px_ss_api_token_create_keys_with_csrs.json.csr_id }}"
+
+  - name: Fetch CSR
+    ansible.builtin.uri:
+      url: "{{ px_ss_api_uri }}/api/v1/keys/{{ key_id }}/csrs/{{ csr_id }}?csr_format=PEM"
+      method: GET
+      body_format: json
+      return_content: true
+      status_code:
+        - 200
+      headers:
+        Content-Type: application/json
+        Accept: application/octet-stream
+        Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+      validate_certs: "{{ px_ss_api_validate_certs }}"
+    register: px_ss_api_csr
+    changed_when: true
+
+  # ansible.builtin.uri quotes multiline boundary strings
+  # This causes mod_security to block our requests, so we are using curl instead
+  - name: Request certificate
+    ansible.builtin.shell: >
+      curl -s -L "{{ px_ss_api_ca_enrollment_endpoint }}"
+      -F user="{{ key_type }}-{{ item.member_code }}"
+      -F password="{{ item.enrollment_token }}"
+      -F pkcs10req="{{ px_ss_api_csr.content }}"
+      -F resulttype=4
+    args:
+      executable: /bin/bash
+      warn: false
+    register: px_ss_api_cert
+    changed_when: true
+
+  - name: Import certificate
+    ansible.builtin.uri:
+      url: "{{ px_ss_api_uri }}/api/v1/token-certificates"
+      method: POST
+      body:
+        "{{ px_ss_api_cert.stdout }}"
+      status_code:
+        - 200
+        - 201
+        - 409
+      headers:
+        Content-Type: application/octet-stream
+        Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+      validate_certs: "{{ px_ss_api_validate_certs }}"
+    register: px_ss_api_token_import_certificate
+    changed_when: true
+  when: "key_type + '-' + item.member_code not in px_ss_api_token_keys"

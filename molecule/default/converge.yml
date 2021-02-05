@@ -1,0 +1,48 @@
+---
+- name: Converge
+  hosts: ss
+  vars:
+    px_ui_user_password: Secret.1234
+    px_ss_public_endpoint: "ss01-local"
+    px_ss_api_clients:
+      - member_class: "COM"
+        member_code: "0170000000000"
+        subsystem_code: "data-bank-local"
+        connection_type: "HTTP"
+        enrollment_token: "password"
+        services:
+          - type: "OPENAPI3"
+            url: "http://petstore:8080/openapi.json"
+            service_code: "petstore-openapi3"
+            enabled: true
+            disabled_notice: "Temporarily disabled"
+            service_clients:
+              - id: "JP-TEST:COM:0170121212121:gas"
+              - id: "JP-TEST:COM:0170121212121:test"
+          - type: "REST"
+            url: "http://petstore:8080"
+            service_code: "petstore-rest"
+            enabled: false
+            disabled_notice: "Temporarily disabled"
+            service_clients:
+              - id: "JP-TEST:COM:0170121212121:test"
+          - type: "WSDL"
+            url: "http://soapui:8080/BLZ-SOAP11-MockService?WSDL"
+            service_code: "getBank"
+            enabled: true
+            service_clients:
+              - id: "JP-TEST:COM:0170121212121:test"
+      - member_class: "COM"
+        member_code: "0170000000001"
+        subsystem_code: "data-bank2-local"
+        connection_type: "HTTP"
+        enrollment_token: "password"
+
+  tasks:
+    - name: Waiting for ui-proxy-api
+      wait_for:
+        port: 4000
+        timeout: 300
+    - name: "Include planetway_ss_admin_api_ansible"
+      include_role:
+        name: "planetway_ss_admin_api_ansible"

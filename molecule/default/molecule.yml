@@ -1,0 +1,124 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: postgres
+    image: docker.io/postgres:12.5
+    pre_build_image: true
+    memory: 256M
+    published_ports:
+      - "5432:5432"
+    command: postgres
+    env:
+      POSTGRES_PASSWORD: password
+    docker_networks:
+      - name: px
+        ipam_config:
+          - subnet: "10.0.0.0/24"
+            gateway: "10.0.0.1"
+    networks_cli_compatible: yes
+    network_mode: default
+    networks:
+      - name: px
+        ipv4_address: "10.0.0.10"
+  - name: petstore
+    image: openapitools/openapi-petstore
+    pre_build_image: true
+    memory: 768M
+    published_ports:
+      - "8080:8080"
+    command: java -Dopenapi.openAPIPetstore.base-path=${OPENAPI_BASE_PATH} -jar /petstore/openapi-petstore.jar
+    env:
+      OPENAPI_BASE_PATH: /v3
+    network_mode: default
+    networks:
+      - name: px
+        ipv4_address: "10.0.0.20"
+  - name: soapui
+    image: fbascheper/soapui-mockservice-runner
+    pre_build_image: true
+    memory: 256M
+    published_ports:
+      - "8081:8080"
+    command: start-soapui
+    env:
+      MOCK_SERVICE_NAME: BLZ-SOAP11-MockService
+    network_mode: default
+    networks:
+      - name: px
+        ipv4_address: "10.0.0.21"
+  - name: ss
+    image: docker.io/planetway/xroad-securityserver:6.24.1-1
+    pre_build_image: true
+    memory: 2G
+    published_ports:
+      - "4000:4000"
+    command: bash -c "/files/initdb.sh && /files/cmd.sh"
+    env:
+      PX_INSTANCE: JP-TEST
+      PX_MEMBER_CLASS: COM
+      PX_MEMBER_CODE: "0170121212121"
+      PX_SS_CODE: ss01
+      PX_TSA_NAME: TEST of Planetway Timestamping Authority 2020
+      PX_TSA_URL: https://tsa.test.planetcross.net
+      PX_TOKEN_PIN: Secret.1234
+      PX_ADMINUI_USER: admin
+      PX_ADMINUI_PASSWORD: Secret.1234
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PX_SERVERCONF_PASSWORD: password
+      PX_MESSAGELOG_PASSWORD: password
+      PX_OPMONITOR_PASSWORD: password
+      PX_POPULATE_DATABASE: "true"
+      PX_ENROLL: "true"
+    network_mode: default
+    networks:
+      - name: px
+        ipv4_address: "10.0.0.30"
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+verifier:
+  name: ansible
+scenario:
+  create_sequence:
+    #- dependency
+    - create
+    #- prepare
+  check_sequence:
+    #- dependency
+    - cleanup
+    - destroy
+    - create
+    #- prepare
+    - converge
+    - check
+    - destroy
+  converge_sequence:
+    #- dependency
+    - create
+    #- prepare
+    - converge
+  destroy_sequence:
+    #- dependency
+    - cleanup
+    - destroy
+  test_sequence:
+    #- dependency
+    - lint
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    #- prepare
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
