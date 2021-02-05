@@ -18,36 +18,43 @@ px_ss_api_instance: "JP-TEST"
 px_ss_api_ca: "TEST of Planetway Root CA 2020"
 px_ss_api_ca_enrollment_endpoint: "https://enroll.test.planetcross.net"
 px_ss_api_token: "softToken-0"
-# List of subsystems, services, acls
 
-# for example:
-# px_ss_api_subsystems:
-#   -
-#     member_class: "COM"
-#     member_code: "0170121212121"
-#     subsystem_code: "flow"
-#     connection_type: "HTTPS"
-# px_ss_api_services:
-#   -
-#     member_class: "COM"
-#     member_code: "0170121212121"
-#     subsystem_code: "flow"
-#     url: "http://127.0.0.1:10080/openapi"
-#     rest_service_code: "processes"
-#     type: "OPENAPI3"
-#     enabled: true
-# px_ss_api_acls:
-#   -
-#     service_id: "JP-TEST:COM:0170121212121:flow:processes"
-#     client_subsystems:
-#       -
-#         id: "JP-TEST:COM:0170121212121:subsystem"
+# Clients, services and service clients can be defined as follows:
+# px_ss_api_clients:
+#   - member_class: "COM"
+#     member_code: "0170000000000"
+#     subsystem_code: "data-bank-local"
+#     connection_type: "HTTP"
+#     enrollment_token: "password" # enrolling with planetways CA
+#     services:
+#       - type: "OPENAPI3"
+#         url: "http://petstore:8080/openapi.json"
+#         service_code: "petstore-openapi3"
+#         enabled: true
+#         disabled_notice: "Temporarily disabled"
+#         service_clients:
+#           - id: "JP-TEST:COM:0170121212121:gas"
+#           - id: "JP-TEST:COM:0170121212121:test"
+#       - type: "REST"
+#         url: "http://petstore:8080"
+#         service_code: "petstore-rest"
+#         enabled: false
+#         disabled_notice: "Temporarily disabled"
+#         service_clients:
+#           - id: "JP-TEST:COM:0170121212121:test"
+#       - type: "WSDL"
+#         url: "http://soapui:8080/BLZ-SOAP11-MockService?WSDL"
+#         service_code: "getBank"
+#         enabled: true
+#         service_clients:
+#           - id: "JP-TEST:COM:0170121212121:test"
+#   - member_class: "COM"
+#     member_code: "0170000000001"
+#     subsystem_code: "data-bank2-local"
+#     connection_type: "HTTP"
+#     enrollment_token: "password"
 
-px_ss_api_keys_and_certificates: []
-
-px_ss_api_subsystems: []
-px_ss_api_services: []
-px_ss_api_acls: []
+px_ss_api_clients: []
 
 px_ss_api_validate_certs: false
 
