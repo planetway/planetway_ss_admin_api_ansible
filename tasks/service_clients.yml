@@ -57,3 +57,4 @@
     validate_certs: "{{ px_ss_api_validate_certs }}"
   register: px_ss_api_delete_service_clients
   changed_when: px_ss_api_delete_service_clients.status == 200 or px_ss_api_delete_service_clients.status == 204
+  when: service_clients_to_delete | length > 0
