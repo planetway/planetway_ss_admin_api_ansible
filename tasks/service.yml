@@ -6,7 +6,7 @@
     method: POST
     body:
       url: "{{ item.1.url }}"
-      rest_service_code: "{{ item.1.service_code | default(omit) }}"
+      rest_service_code: "{{ item.1.rest_service_code | default(omit) }}"
       ignore_warnings: false
       type: "{{ item.1.type }}"
     status_code:
@@ -76,3 +76,22 @@
   register: px_ss_api_service_disabled
   when: item.1.enabled == false and px_ss_api_service_this.disabled == false
   changed_when: px_ss_api_service_disabled.status == 200
+
+- name: Set service URL for service code
+  ansible.builtin.uri:
+    url: "{{ px_ss_api_uri }}/api/v1/services/{{ px_ss_api_instance }}:{{ item.0.member_class }}:{{ item.0.member_code }}:{{ item.0.subsystem_code }}:{{ service_url_item.service_code }}"
+    method: PATCH
+    body_format: json
+    body:
+      url: "{{ service_url_item.service_code_url }}"
+      timeout: "{{ timeout | default(60) }}"
+      ssl_auth: "{{ ssl_auth | default(false) }}"
+    headers:
+      Content-Type: application/json
+      Authorization: "X-Road-ApiKey token={{ px_ss_api_key }}"
+    validate_certs: "{{ px_ss_api_validate_certs }}"
+  register: px_ss_api_service_url_for_service_code
+  loop: "{{ item.1.service_codes }}"
+  loop_control:
+    loop_var: service_url_item
+  when: service_url_item.service_code_url is defined

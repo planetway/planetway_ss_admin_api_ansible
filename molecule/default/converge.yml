@@ -13,25 +13,35 @@
         services:
           - type: "OPENAPI3"
             url: "http://petstore:8080/openapi.json"
-            service_code: "petstore-openapi3"
+            rest_service_code: "petstore-openapi3"
             enabled: true
             disabled_notice: "Temporarily disabled"
-            service_clients:
-              - id: "JP-TEST:COM:0170121212121:gas"
-              - id: "JP-TEST:COM:0170121212121:test"
+            service_codes:
+              - service_code: "petstore-openapi3"
+                service_clients:
+                  - id: "JP-TEST:COM:0170121212121:gas"
+                  - id: "JP-TEST:COM:0170121212121:test"
+                  - id: "JP-TEST:COM:0170121212121:democlient"
           - type: "REST"
             url: "http://petstore:8080"
-            service_code: "petstore-rest"
+            rest_service_code: "petstore-rest"
             enabled: false
             disabled_notice: "Temporarily disabled"
-            service_clients:
-              - id: "JP-TEST:COM:0170121212121:test"
+            service_codes:
+              - service_code: "petstore-rest"
+                service_clients:
+                  - id: "JP-TEST:COM:0170121212121:test"
           - type: "WSDL"
             url: "http://soapui:8080/BLZ-SOAP11-MockService?WSDL"
-            service_code: "getBank"
             enabled: true
-            service_clients:
-              - id: "JP-TEST:COM:0170121212121:test"
+            service_codes:
+              - service_code: "getBank"
+                service_code_url: "http://soapui:8080/BLZ"
+                timeout: 30
+                ssl_auth: true
+                service_clients:
+                  - id: "JP-TEST:COM:0170121212121:test"
+                  - id: "JP-TEST:COM:0170121212121:democlient"
       - member_class: "COM"
         member_code: "0170000000001"
         subsystem_code: "data-bank2-local"
