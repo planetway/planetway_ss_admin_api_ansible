@@ -1,4 +1,8 @@
-# Local development
+# X-Road Security Server Admin API Ansible Role
+
+This role helps to manage the X-Road Security Server by using it's Admin APIs.
+
+## Local development
 
 This role uses molecule for local development. Start by installing it with pip (or any other method on your choice).
 
