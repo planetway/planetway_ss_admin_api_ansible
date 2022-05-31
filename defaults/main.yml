@@ -15,7 +15,7 @@ px_ui_user_password: ""
 
 px_ss_api_instance: "JP-TEST"
 
-px_ss_api_ca: "TEST of Planetway Root CA 2020"
+px_ss_api_ca: "TEST of Planetway Root CA 2021"
 px_ss_api_ca_enrollment_endpoint: "https://enroll.test.planetcross.net"
 px_ss_api_token: "softToken-0"
 
